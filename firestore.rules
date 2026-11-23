@@ -1,0 +1,155 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isUser(uid) { return signedIn() && request.auth.uid == uid; }
+    function roleAfter() {
+      return getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    // Private profile. Role is fixed at sign-up and cannot be changed afterwards.
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create: if isUser(uid)
+        && request.resource.data.role in ['Customer', 'Builder / Contractor', 'Builder', 'Contractor', 'Worker', 'Architect / Engineer'];
+      allow update: if isUser(uid)
+        && request.resource.data.role == resource.data.role;
+      allow delete: if false;
+    }
+
+    // Public listings. Only the owner may write, and workers cannot set their own rating.
+    match /workers/{id} {
+      allow read: if true;
+      allow create: if isUser(id) && roleAfter() == 'Worker'
+        && request.resource.data.ownerUid == request.auth.uid && request.resource.data.rating == 0;
+      allow update: if isUser(id) && roleAfter() == 'Worker'
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.rating == resource.data.rating;
+      allow delete: if false;
+    }
+    match /builders/{id} {
+      allow read: if true;
+      allow create: if isUser(id) && roleAfter() in ['Builder / Contractor', 'Builder', 'Contractor']
+        && request.resource.data.ownerUid == request.auth.uid;
+      allow update: if isUser(id) && roleAfter() in ['Builder / Contractor', 'Builder', 'Contractor']
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.rating == resource.data.rating;
+      allow delete: if false;
+    }
+
+    // A booking is visible to the customer and the worker only. The worker may change `status` and nothing else.
+    match /bookings/{id} {
+      allow read: if signedIn()
+        && (resource.data.customerId == request.auth.uid || resource.data.workerId == request.auth.uid);
+      allow create: if signedIn()
+        && request.resource.data.customerId == request.auth.uid
+        && exists(/databases/$(database)/documents/workers/$(request.resource.data.workerId))
+        && get(/databases/$(database)/documents/workers/$(request.resource.data.workerId)).data.ownerUid == request.resource.data.workerId
+        && request.resource.data.workerName == get(/databases/$(database)/documents/workers/$(request.resource.data.workerId)).data.name
+        && request.resource.data.skill == get(/databases/$(database)/documents/workers/$(request.resource.data.workerId)).data.skill
+        && get(/databases/$(database)/documents/users/$(request.resource.data.workerId)).data.role == 'Worker'
+        && request.resource.data.status == 'pending'
+        && request.resource.data.customerRole != 'Worker'
+        && request.resource.data.customerRole == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+      allow update: if signedIn()
+        && resource.data.workerId == request.auth.uid
+        && resource.data.status == 'pending'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+        && request.resource.data.status in ['accepted', 'rejected'];
+      allow delete: if false;
+    }
+
+    // One thread per booking; only its two parties can read or post.
+    match /chats/{bookingId}/messages/{messageId} {
+      function isParty() {
+        let b = get(/databases/$(database)/documents/bookings/$(bookingId)).data;
+        return signedIn() && request.auth.uid in [b.customerId, b.workerId];
+      }
+      allow read: if isParty();
+      allow create: if isParty()
+        && request.resource.data.from == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 1000
+        && request.resource.data.keys().hasOnly(['from', 'fromName', 'text', 'ts'])
+        && request.resource.data.ts == request.time;
+      allow update, delete: if false;
+    }
+
+    // Private construction projects. Only the customer and assigned builder can read.
+    match /projects/{projectId} {
+      function isMember(data) {
+        return signedIn() && request.auth.uid in [data.customerId, data.builderId];
+      }
+      allow read: if isMember(resource.data);
+      allow create: if signedIn()
+        && request.resource.data.customerId == request.auth.uid
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'Customer'
+        && request.resource.data.name is string && request.resource.data.name.size() > 0
+        && request.resource.data.location is string && request.resource.data.location.size() > 0
+        && request.resource.data.budget is number && request.resource.data.budget > 0
+        && request.resource.data.startDate is string
+        && request.resource.data.builderId is string
+        && (request.resource.data.builderId == '' || (exists(/databases/$(database)/documents/users/$(request.resource.data.builderId))
+          && get(/databases/$(database)/documents/users/$(request.resource.data.builderId)).data.role in ['Builder / Contractor', 'Builder', 'Contractor']))
+        && request.resource.data.stages is list && request.resource.data.stages.size() == 12
+        && request.resource.data.tasks is list && request.resource.data.reports is list && request.resource.data.expenses is list
+        && request.resource.data.keys().hasOnly(['name', 'location', 'budget', 'startDate', 'customerId', 'customerName', 'builderId', 'builderName', 'stages', 'reports', 'expenses', 'createdAt', 'updatedAt']);
+      allow update: if isMember(resource.data)
+        && request.resource.data.customerId == resource.data.customerId
+        && (request.resource.data.builderId == resource.data.builderId
+          || (request.auth.uid == resource.data.customerId && resource.data.builderId == ''
+            && request.resource.data.builderId is string && request.resource.data.builderId.size() > 0
+            && exists(/databases/$(database)/documents/users/$(request.resource.data.builderId))
+            && get(/databases/$(database)/documents/users/$(request.resource.data.builderId)).data.role in ['Builder / Contractor', 'Builder', 'Contractor']))
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'location', 'budget', 'startDate', 'builderId', 'builderName', 'stages', 'tasks', 'reports', 'expenses', 'updatedAt'])
+        && ((request.auth.uid == resource.data.builderId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['stages', 'tasks', 'reports', 'expenses', 'updatedAt']))
+          || (request.auth.uid == resource.data.customerId
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'location', 'budget', 'startDate', 'builderId', 'builderName', 'tasks', 'updatedAt'])));
+      allow delete: if false;
+    }
+
+    match /issueReports/{reportId} {
+      allow create: if signedIn()
+        && request.resource.data.reporterId == request.auth.uid
+        && request.resource.data.title is string && request.resource.data.title.size() >= 3
+        && request.resource.data.details is string && request.resource.data.details.size() >= 10
+        && request.resource.data.details.size() <= 1500
+        && request.resource.data.priority in ['Normal', 'High', 'Urgent · no immediate danger']
+        && request.resource.data.status == 'Received'
+        && request.resource.data.keys().hasOnly(['title', 'details', 'priority', 'reporterId', 'reporterName', 'date', 'status', 'createdAt']);
+      allow read: if signedIn() && resource.data.reporterId == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    match /projectChats/{projectId}/messages/{messageId} {
+      function projectParty() {
+        let p = get(/databases/$(database)/documents/projects/$(projectId)).data;
+        return signedIn() && request.auth.uid in [p.customerId, p.builderId];
+      }
+      allow read: if projectParty();
+      allow create: if projectParty()
+        && request.resource.data.from == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 1000
+        && request.resource.data.keys().hasOnly(['from', 'fromName', 'text', 'ts'])
+        && request.resource.data.ts == request.time;
+      allow update, delete: if false;
+    }
+
+    // Architectural design requests, plans, and revisions between customer and architect
+    match /architecturalRequests/{requestId} {
+      function isRequestParty(data) {
+        return signedIn() && (request.auth.uid == data.customerId || request.auth.uid == data.architectId);
+      }
+      allow read: if signedIn() && (isRequestParty(resource.data) || resource.data.architectId == 'demo-architect');
+      allow create: if signedIn()
+        && request.resource.data.customerId == request.auth.uid
+        && request.resource.data.projectName is string
+        && request.resource.data.architectId is string;
+      allow update: if signedIn() && (isRequestParty(resource.data) || resource.data.architectId == 'demo-architect');
+      allow delete: if false;
+    }
+  }
+}

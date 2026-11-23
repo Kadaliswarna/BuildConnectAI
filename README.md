@@ -22,15 +22,7 @@ BuildConnectAI brings customers, builders, architects and workers together in on
 - **Voice Assistance** — browser-based voice navigation for supported commands.
 - **Safety Support** — report construction-site safety issues.
 
-## 🧭 Explore the Platform (Customer Portal)
-
-### 👤 Customer Workspace
-
-When logged in as a Customer, users manage their project dashboard, communicate with booked builders and workers, search directories, and track estimates and progress.
-
-![Customer dashboard](screenshots/30-customer-dashboard.jpg)
-
-![Customer messages](screenshots/31-customer-messages.jpg)
+## 🧭 Explore the Platform
 
 ### Find Builders
 
@@ -49,6 +41,12 @@ When logged in as a Customer, users manage their project dashboard, communicate 
 ### Construction Cost Estimator
 
 ![Cost estimator](screenshots/06-cost-estimator.jpg)
+
+### 👤 Customer Workspace
+
+![Customer dashboard](screenshots/30-customer-dashboard.jpg)
+
+![Customer messages](screenshots/31-customer-messages.jpg)
 
 ## 👥 Role-Based Dashboards
 

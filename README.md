@@ -1,67 +1,131 @@
-# BuildConnectAI
+# 🏗️ BuildConnectAI
 
-## BuildConnect AI (React + Tailwind + Firebase)
+### Smart Construction Marketplace & Project Management Platform
 
-React + TypeScript construction marketplace and project dashboard. Includes role-based Firebase sign-in,
-builder and worker directories, worker bookings and chat, construction tracking, cost planning, material quote
-comparison, safety issue reporting, project messaging, and browser-based voice navigation.
+BuildConnectAI brings customers, builders, architects and workers together in one construction platform. Explore builders and workers, manage construction projects, track progress, estimate costs, compare material quotes and communicate with project participants.
 
-## Run
-```bash
-npm install
-cp .env.example .env.local   # fill in your Firebase web-app config
-npm run dev
-```
-Without `.env.local` the UI still loads using demo listings; accounts, bookings and chat need Firebase.
+> **Project showcase:** The screenshots below are taken from the BuildConnectAI screens supplied with this project.
 
-## Firebase setup
-1. Create a project; enable **Authentication → Email/Password** and **Firestore**.
-2. Register a Web app and copy its config into `.env.local`.
-3. Deploy rules: `npx firebase-tools deploy --only firestore:rules`.
-4. To upload project photos, configure the Storage bucket and deploy both sets of rules:
-   `npx firebase-tools deploy --only firestore:rules,storage`.
-5. Optional: add builder/worker documents to the `builders` / `workers` collections (shapes in `src/types.ts`).
-   While those collections are empty the app shows the bundled demo data.
+## 🌐 Platform Preview
 
-## Added project modules
-- Customers can create projects, assign a registered builder, track 12 stages, maintain tasks and expenses,
-  read daily reports, view site photos and message the assigned builder. Builders can update stages, reports,
-  expenses and photos. Firestore rules restrict project access to the customer and assigned builder.
-- In the absence of Firebase, projects and issue reports are local browser demos. Demo data does not sync
-  between users or devices. Do not use this mode for private production data.
-- The cost estimator uses editable illustrative unit rates, not live prices. Users can export a CSV or print
-  the estimate to PDF. Verify every rate and quantity with local suppliers and an engineer.
-- Material price comparison records quotes entered by the user. No supplier feed or price verification is
-  connected. Quantity guidance is only for early planning.
-- Voice input uses the browser Web Speech API where available. It performs a small set of navigation commands;
-  there is no AI service or speech backend.
-- Emergency support presents India’s integrated emergency number 112. Issue reports are not an emergency channel.
+![BuildConnectAI home page](screenshots/01-homepage.jpg)
 
-## Production setup and remaining integrations
-- Add the Firebase web-app values to `.env.local`, enable Email/Password Authentication, create Firestore and
-  Storage, then deploy `firestore.rules` and `storage.rules`. Rules have not been verified in the Firebase
-  emulator in this workspace; test them before using real customer data.
-- Push notifications, email/SMS alerts, AI conversation, live supplier price feeds, payment processing,
-  builder quotation/review workflows, and server-side report generation are not connected. Browser speech
-  assistance is limited to the navigation commands documented in the UI.
-- The current estimator is a transparent deterministic calculator. Its adjustable defaults are illustrative;
-  it is not an AI estimate or substitute for a structural design and local quotations.
+## ✨ What BuildConnectAI Offers
 
-## Data model
-| Path | Who reads | Who writes |
-|---|---|---|
-| `users/{uid}` | that user | that user (role immutable) |
-| `workers/{uid}`, `builders/{uid}` | everyone | the owner (workers cannot set their rating) |
-| `bookings/{id}` | its customer and worker | customer creates; worker changes `status` only |
-| `chats/{bookingId}/messages/{id}` | the booking's two parties | the two parties |
-| `projects/{id}` | customer and assigned builder | customer creates; customer edits basics/tasks; assigned builder updates progress/tasks/expenses |
-| `projectChats/{projectId}/messages/{id}` | project customer and builder | project customer and builder |
-| `issueReports/{id}` | reporting user | signed-in user creates their own report |
+- **Find Builders** — browse construction builders and compare profiles and quotes.
+- **Hire Workers** — discover workers and send booking requests.
+- **Project Tracking** — follow construction stages, tasks, reports and expenses.
+- **Cost Estimation** — prepare an illustrative construction cost estimate.
+- **Material Insights** — view material information and compare entered quotes.
+- **Workforce Management** — manage workers, tasks and attendance.
+- **Messages & Coordination** — communicate with project participants.
+- **Voice Assistance** — browser-based voice navigation for supported commands.
+- **Safety Support** — report construction-site safety issues.
 
-Project site photos are uploaded to Firebase Storage at `projects/{projectId}/{fileName}`. `storage.rules`
-limits uploads to assigned project builders, images, and files below 5 MiB. Deploy these rules before enabling
-photo uploads in a Firebase-backed deployment.
+## 🧭 Explore the Platform
 
-## Notes
-- Demo workers (`w1`…`w10`) are not real accounts, so bookings made to them never receive a reply. Register a Worker account in a second browser to test accept/decline and chat end to end.
-- `firestore.rules` has not been run against the emulator (it cannot be downloaded in the build sandbox). Test it in the Rules Playground or with `firebase emulators:start` before launch.
+### Find Builders
+
+![Find builders](screenshots/02-find-builders.jpg)
+
+### Hire Workers
+
+| Dark interface | Light interface |
+|---|---|
+| ![Hire workers dark](screenshots/03-hire-workers-dark.jpg) | ![Hire workers light](screenshots/04-hire-workers-light.jpg) |
+
+### Project Tracking
+
+![Construction project tracking](screenshots/05-project-tracking.jpg)
+
+### Construction Cost Estimator
+
+![Cost estimator](screenshots/06-cost-estimator.jpg)
+
+## 👥 Role-Based Dashboards
+
+BuildConnectAI includes role-oriented workspaces. The following galleries show the dashboard and workflow screens included in the supplied screenshots.
+
+### 🏗️ Builder Workspace
+
+**Dashboard and project management**
+
+![Builder dashboard](screenshots/07-builder-dashboard.jpg)
+
+![Builder projects](screenshots/08-builder-projects.jpg)
+
+**Workers, workforce and daily operations**
+
+| Worker directory | Workforce management |
+|---|---|
+| ![Builder worker directory](screenshots/09-builder-worker-directory.jpg) | ![Workforce management](screenshots/10-builder-workforce-management.jpg) |
+
+| Tasks & scheduling | Attendance |
+|---|---|
+| ![Tasks and scheduling](screenshots/11-builder-tasks-scheduling.jpg) | ![Attendance](screenshots/12-builder-attendance.jpg) |
+
+**Project progress, expenses and quotations**
+
+![Progress tracking](screenshots/13-builder-progress-tracking.jpg)
+
+![Expense management](screenshots/14-builder-expense-management.jpg)
+
+![Client quotations](screenshots/15-builder-quotations.jpg)
+
+**Materials, communication and profile**
+
+![Material insights](screenshots/16-material-insights.jpg)
+
+![Messages and coordination](screenshots/17-messages-coordination.jpg)
+
+![Builder profile](screenshots/18-builder-profile.jpg)
+
+### 📐 Architect Workspace
+
+![Architect dashboard](screenshots/19-architect-dashboard.jpg)
+
+| Pending requests | Project status |
+|---|---|
+| ![Architect pending requests](screenshots/20-architect-pending-requests.jpg) | ![Architect project status](screenshots/21-architect-project-status.jpg) |
+
+![3D visualizer](screenshots/22-architect-3d-visualizer.jpg)
+
+| Material calculator | Profile and qualifications |
+|---|---|
+| ![Architect material calculator](screenshots/23-architect-material-calculator.jpg) | ![Architect profile](screenshots/24-architect-profile-qualifications.jpg) |
+
+### 👷 Worker Workspace
+
+![Worker voice assistant](screenshots/25-worker-voice-assistant.jpg)
+
+![Worker job requests and chat](screenshots/26-worker-job-requests-chat.jpg)
+
+| Find daily jobs | Wages and wallet |
+|---|---|
+| ![Worker daily jobs](screenshots/27-worker-daily-jobs.jpg) | ![Worker wages and wallet](screenshots/28-worker-wages-wallet.jpg) |
+
+![Worker profile](screenshots/29-worker-profile.jpg)
+
+### 👤 Customer Workspace
+
+![Customer dashboard](screenshots/30-customer-dashboard.jpg)
+
+![Customer messages](screenshots/31-customer-messages.jpg)
+
+## 🛠️ Technology
+
+- React
+- TypeScript
+- Tailwind CSS
+- Vite
+- Firebase Authentication
+- Cloud Firestore
+- Firebase Storage
+
+## 🎯 Project Vision
+
+To make construction workflows more connected, transparent and manageable by bringing project discovery, workforce coordination, progress tracking and communication into one digital platform.
+
+---
+
+**BuildConnectAI — Smart Construction. Better Connections. Stronger Foundations.**

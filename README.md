@@ -111,7 +111,8 @@ BuildConnectAI includes role-oriented workspaces. The following galleries show t
 |---|---|
 | ![Architect material calculator](screenshots/23-architect-material-calculator.jpg) | ![Architect profile](screenshots/24-architect-profile-qualifications.jpg) |
 
-### 👷 Worker Workspace
+<h2 align="center">👷 Worker Login</h2>
+<p align="center"><em>Worker Workspace &amp; Daily Operations</em></p>
 
 ![Worker voice assistant](screenshots/25-worker-voice-assistant.jpg)
 

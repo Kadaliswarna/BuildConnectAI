@@ -10,8 +10,17 @@ BuildConnectAI brings customers, builders, architects and workers together in on
 
 ![BuildConnectAI home page](screenshots/01-homepage.jpg)
 
+### 🌍 Multilingual Interface (English, Telugu, Hindi)
+
+BuildConnectAI provides full native language switching to empower workers, builders, and customers across India:
+
+| English | Telugu (తెలుగు) | Hindi (हिन्दी) |
+|:---:|:---:|:---:|
+| ![BuildConnectAI English](screenshots/multilingual-english.jpg) | ![BuildConnectAI Telugu](screenshots/multilingual-telugu.jpg) | ![BuildConnectAI Hindi](screenshots/multilingual-hindi.jpg) |
+
 ## ✨ What BuildConnectAI Offers
 
+- **Multilingual Support** — seamless interface switching between English, Telugu (తెలుగు), and Hindi (हिन्दी).
 - **Find Builders** — browse construction builders and compare profiles and quotes.
 - **Hire Workers** — discover workers and send booking requests.
 - **Project Tracking** — follow construction stages, tasks, reports and expenses.

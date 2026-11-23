@@ -24,6 +24,8 @@ BuildConnectAI brings customers, builders, architects and workers together in on
 
 ## 🧭 Explore the Platform
 
+The **Customer Workspace** enables users to find builders, hire workers, track construction progress, estimate costs, and coordinate project messages.
+
 ### Find Builders
 
 ![Find builders](screenshots/02-find-builders.jpg)
